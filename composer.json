@@ -1,0 +1,31 @@
+{
+    "name": "allanvb/laravel-semysms",
+    "description": "SemySMS integration for Laravel",
+    "keywords": ["laravel", "semysms"],
+    "homepage": "https://github.com/allanvb/laravel-semysms",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alan Vb",
+            "email": "alan.vb@mail.ru"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "Allanvb\\LaravelSemysms\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Allanvb\\LaravelSemysms\\SemySmsServiceProvider"
+            ],
+            "aliases": {
+                "SemySMS": "Allanvb\\LaravelSemysms\\Facades\\SemySMS"
+            }
+        }
+    }
+}
