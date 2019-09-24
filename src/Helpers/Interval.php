@@ -30,8 +30,8 @@ class Interval
             throw InvalidIntervalException::create($startDate, $endDate);
         }
 
-        $this->startDate = $startDate;
-        $this->endDate = $endDate;
+        $this->startDate = $startDate->format('Y-m-d H:i:s');
+        $this->endDate = $endDate->format('Y-m-d H:i:s');
     }
 
     /**
@@ -42,6 +42,20 @@ class Interval
      */
     public static function create(DateTime $startDate, DateTime $endDate): self
     {
+        return new static($startDate, $endDate);
+    }
+
+    /**
+     * @param int $numberOfHours
+     * @return Interval
+     * @throws InvalidIntervalException
+     */
+    public static function hours(int $numberOfHours): self
+    {
+        $endDate = Carbon::now();
+
+        $startDate = Carbon::now()->subHours($numberOfHours);
+
         return new static($startDate, $endDate);
     }
 

@@ -4,8 +4,8 @@
 namespace Allanvb\LaravelSemysms;
 
 use Allanvb\LaravelSemysms\Helpers\SemySms;
+use Allanvb\LaravelSemysms\Rules\IntervalRule;
 use Illuminate\Support\Facades\Validator;
-
 
 class Client extends SemySms
 {
@@ -173,32 +173,44 @@ class Client extends SemySms
     }
 
     /**
-     * @param string|null $devices
-     * @return \Illuminate\Support\Collection|mixed
+     * @param array|null $data
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      */
-    public function getDevices(string $devices = null)
+    public function getDevices(array $data = null)
     {
         $url = self::GET_DEVICES_LIST_URL;
 
-        $archive = null;
+        if (isset($data)) {
+            $validator = Validator::make($data, [
+                'status' => 'in:active,archived',
+                'list_id' => 'array'
+            ]);
 
-        if (isset($devices)) {
-            switch ($devices) {
-                case 'active':
-                    $archive = 0;
-                    break;
-                case 'archived':
-                    $archive = 1;
-                    break;
+            if ($validator->fails()) {
+                return back()->withErrors($validator->errors());
             }
         }
 
         $postData = [
-            'token' => $this->token,
-            'is_arhive' => $archive
+            'token' => $this->token
         ];
+
+        if (isset($data['status'])) {
+            switch ($data['status']) {
+                case 'active':
+                    $postData['is_arhive'] = 0;
+                    break;
+                case 'archived':
+                    $postData['is_arhive'] = 1;
+                    break;
+            }
+        }
+
+        if (isset($data['list_id'])) {
+            $postData['list_id'] = implode(',', $data['list_id']);
+        }
 
         $request = $this->performRequest($postData, $url);
 
@@ -229,15 +241,21 @@ class Client extends SemySms
             }
         }
 
-        $device_id = $data['device_id'] ?? $this->device_id;
-
         $postData = [
             'token' => $this->token,
-            'device' => $device_id
         ];
+
+        if (isset($data['device_id'])) {
+            $postData['device'] = $data['device_id'];
+            $postData['id_sms'] = 1;
+        } else {
+            $postData['device'] = $this->device_id;
+            $postData['id_sms'] = 1;
+        }
 
         if (isset($data['sms_id'])) {
             $postData['id_sms'] = $data['sms_id'];
+            unset($postData['device']);
         }
 
         $request = $this->performRequest($postData, $url);

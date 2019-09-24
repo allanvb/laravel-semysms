@@ -1,5 +1,12 @@
+<h2 align="center">
+    Laravel package for SMS mailing service SemySMS
+</h2>
 
-## Laravel package for SMS mailing service SemySMS
+<p align="center">
+    <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/packagist/v/allanvb/laravel-semysms?color=orange&style=flat-square" alt="Packagist Version"></a>
+    <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/github/last-commit/allanvb/laravel-semysms?color=blue&style=flat-square" alt="GitHub last commit"></a>
+    <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/packagist/l/allanvb/laravel-semysms?color=brightgreen&style=flat-square" alt="License"></a>
+</p>
 
 Simple package that integrates [SemySMS](http:/semysms.net) API into your Laravel 5.4+ app.
 
@@ -104,7 +111,10 @@ SemySMS::send([
 ]);
 ```
 
-You can use specific device by adding `'device_id' => '012345'` to array.
+Available parameters:
+* `to` - (string) Phone in international format **(required)**.
+* `text` - (string) SMS Text, max 255 symbols **(required)**.
+* `device_id` - (int) Device id.
 
 #### Sending multiple messages
 
@@ -115,7 +125,12 @@ SemySMS::sendMultiple([
 ]);
 ```
 
-You can also use multiple devices by adding `'devices' => ['123456','234567','345678']` to array.
+You can also use multiple devices by adding `'devices' => [123456, 234567, 345678]` to array.
+
+Available parameters:
+* `to` - (array) List of phones in international format **(required)**.
+* `text` - (string) SMS Text, max 255 symbols **(required)**.
+* `devices` - (array) List of devices.
 
 #### List of outgoing SMS
 
@@ -144,10 +159,21 @@ SemySMS::deleteOutbox();
 
 #### Delete incoming SMS
 ```php
-SemySMS::deleteOutbox();
+SemySMS::deleteInbox();
 ```
 
-Optional, you can use filtering for `getOutbox()`, `getInbox()`, `deleteOutbox()` and `deleteInbox()` methods by passing `interval`, `device_id` and `phone` to array
+`deleteOutbox()` and `deleteInbox()` methods will return deleted messages.
+
+Optional, you can use filter for `getOutbox()`, `getInbox()`, `deleteOutbox()` and `deleteInbox()` methods.
+
+Available parameters:
+* `interval` - (Interval) Interval of time.
+* `device_id` - (int) Device id.
+* `start_id` - (int) Start id of list filter.
+* `end_id` - (int) End id of list filter.
+* `list_id` - (array) List of SMS codes.
+* `phone` - (string) Phone number.
+
 
 #### List of devices
 
@@ -157,7 +183,9 @@ SemySMS::getDevices();
 
 By default this method will return list of all devices connected to account.
 
-As an option you can get only active devices by passing `'active'`, or `'archived'` for archived devices.
+Available parameters:
+* `status` - (string) active|archived.
+* `list_id` - (array) List of devices.
 
 #### Cancel sending SMS
 
@@ -165,9 +193,9 @@ As an option you can get only active devices by passing `'active'`, or `'archive
 SemySMS::cancelSMS();
 ```
 
-This method will cancel all messages which was not sent to your devices.
+This method will cancel all SMS which was not sent to your default device.
 
-You can request canceling for specific device by passing `device_id`, or specific message by adding `sms_id` to array.
+You can request canceling of all SMS for specific device by passing `device_id`, or specific message by passing `sms_id` to array.
 
 
 ## Events
@@ -204,7 +232,7 @@ When you will get a new message, an `semy-sms.received` [Event](https://laravel.
 
 #### Intervals
 
-Interval class offers the following methods: `days()`, `weeks()`, `months()` and `years()`.
+Interval class offers the following methods: `hours()`, `days()`, `weeks()`, `months()` and `years()`.
 
 If you want to have more control on `Interval` you can pass a `startDate` and an `endDate` to the object.
 

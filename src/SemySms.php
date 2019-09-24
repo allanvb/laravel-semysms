@@ -9,6 +9,7 @@ use Allanvb\LaravelSemysms\Exceptions\SmsNotSentException;
 use Allanvb\LaravelSemysms\Rules\IntervalRule;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Validator;
+use GuzzleHttp\Client;
 
 abstract class SemySms
 {
@@ -44,14 +45,20 @@ abstract class SemySms
     protected $events;
 
     /**
+     * @var Client
+     */
+    protected $client;
+
+    /**
      * SemySms constructor.
      * @param Dispatcher $events
      */
-    public function __construct(Dispatcher $events)
+    public function __construct(Dispatcher $events, Client $client)
     {
         $this->token = config('semy-sms.token');
         $this->device_id = config('semy-sms.device_id');
         $this->events = $events;
+        $this->client = $client;
     }
 
     /**
@@ -62,33 +69,48 @@ abstract class SemySms
      * @throws SmsNotSentException
      * @throws \Allanvb\LaravelSemysms\Exceptions\InvalidIntervalException
      */
-    protected function createListRequest(array $data = null, string $requestUrl) {
+    protected function createListRequest(array $data = null, string $requestUrl)
+    {
         if (isset($data)) {
             $validator = Validator::make($data, [
                 'interval' => new IntervalRule(),
                 'device_id' => 'numeric|digits_between:1,10',
-                'phone' => 'max:30'
+                'start_id' => 'numeric|required_with:end_id',
+                'end_id' => 'numeric|required_with:start_id',
+                'list_id' => 'array',
+                'phone' => 'max:40'
             ]);
 
             if ($validator->fails()) {
-                return $validator->errors();
+                return back()->withErrors($validator->errors());
             }
         }
 
-        $period = $data['interval'] ?? Interval::weeks(1);
-        $deviceID = $data['device_id'] ?? $this->device_id;
-        $phone = $data['phone'] ?? null;
-
         $postData = [
-            'token' => $this->token,
-            'device' => $deviceID,
-            'phone' => $phone,
-            'date_start' => $period->startDate,
-            'date_end' => $period->endDate
+            'token' => $this->token
         ];
 
-        $request = $this->performRequest($postData, $requestUrl);
+        $postData['device'] = $data['device_id'] ?? $this->device_id;
 
+        if (isset($data['interval'])) {
+            $postData['date_start'] = $data['interval']->startDate;
+            $postData['date_end'] = $data['interval']->endDate;
+        }
+
+        if (isset($data['start_id'])) {
+            $postData['start_id'] = $data['start_id'];
+            $postData['end_id'] = $data['end_id'];
+        }
+
+        if (isset($data['phone'])) {
+            $postData['phone'] = $data['phone'];
+        }
+
+        if (isset($data['list_id'])) {
+            $postData['list_id'] = implode(',', $data['list_id']);
+        }
+
+        $request = $this->performRequest($postData, $requestUrl);
         $this->validateRequest($request);
 
         $response = collect(json_decode($request['body'], true)['data']);
@@ -104,30 +126,16 @@ abstract class SemySms
      */
     protected function performRequest(array $postData, string $requestUrl, bool $multiple = false): array
     {
-        $postData = $multiple ? json_encode($postData) : $postData;
+        $content = $multiple ? ['body' => json_encode($postData)] : ['form_params' => $postData];
 
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $requestUrl);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        $request = $this->client->request('POST', $requestUrl, $content);
 
-        if ($multiple) {
-            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Content-Length: ' . strlen($postData)]);
-        }
-
-        $output = curl_exec($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-
-        $request = [
-            'statusCode' => $httpCode,
-            'body' => $output
+        $response = [
+            'statusCode' => $request->getStatusCode(),
+            'body' => $request->getBody()->getContents()
         ];
 
-        return $request;
+        return $response;
     }
 
     /**
@@ -185,10 +193,10 @@ abstract class SemySms
     protected abstract function deleteInbox(array $data = null);
 
     /**
-     * @param string|null $devices
+     * @param array|null $data
      * @return mixed
      */
-    protected abstract function getDevices(string $devices = null);
+    protected abstract function getDevices(array $data = null);
 
     /**
      * @param array|null $data
