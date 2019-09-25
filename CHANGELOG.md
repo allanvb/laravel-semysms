@@ -2,6 +2,10 @@
 
 All notable changes to Laravel SemySMS will be documented in this file
 
+## 1.0.4
+- Added ability to filter USSD responses in case that it comes in SMS
+- Added SMS auto-distributing feature
+
 ## 1.0.3
 - Added ussd-response event
 
