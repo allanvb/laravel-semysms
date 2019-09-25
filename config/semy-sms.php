@@ -21,4 +21,10 @@ return [
      */
     'catch_incoming' => false,
 
+    /**
+     * You can set a list of senders to filter your USSD responses in case you get it as SMS.
+     */
+    'ussd_senders' => [
+        //
+    ],
 ];

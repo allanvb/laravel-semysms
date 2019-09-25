@@ -27,7 +27,7 @@ class ReceiverController extends Controller
 
             $data = collect($data);
 
-            if (preg_match(self::USSD_PATTERN, $request['phone'])) {
+            if (preg_match(self::USSD_PATTERN, $request['phone']) || in_array($request['phone'], config('semy-sms.ussd_senders'))) {
                 $this->dispatch('semy-sms.ussd-response', $data);
             } else {
                 $this->dispatch('semy-sms.received', $data);
