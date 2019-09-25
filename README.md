@@ -114,7 +114,9 @@ SemySMS::send([
 Available parameters:
 * `to` - (string) Phone in international format **(required)**.
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
-* `device_id` - (int) Device id.
+* `device_id` - (string) Device id or *active*.
+
+`device_id` parameter can also take the `active` value which means that the service will distribute new SMS between all your active devices.
 
 #### Sending multiple messages
 
@@ -133,7 +135,7 @@ Available parameters:
 * `devices` - (array) List of devices.
 
 #### Sending USSD requests
-* This feature works only on Android 8.1+
+* This feature works only on Android 8.0+
 
 ```php
 SemySMS::ussd([
@@ -239,9 +241,15 @@ If you want to get incoming messages from your devices, you can use
 
 `https://yourdomain.com/semy-sms/receive` route in your [SemySMS](https://semysms.net) control panel.
 
-To get this route working you need to change `catch_incoming` to `true` in your config file, then you will be able to listen for `semy-sms.received` Event.
+To get this route working you need make some actions:
+* Change `catch_incoming` to `true` in your config file.
+* Add `semy-sms/receive` route to your `$except` variable in `VerifyCsrfToken` middleware.
+
+After that, you will be able to listen for `semy-sms.received` Event.
 
 If you performed an ussd request, you can listen for `semy-sms.ussd-response` Event to process USSD response.
+
+In case that you get USSD response as SMS, you can add sender name to `ussd_senders` in your config file.
 
 You can get more information about Events in [Laravel official documentation](https://laravel.com/docs/events)
 
