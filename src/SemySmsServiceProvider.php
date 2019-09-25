@@ -35,6 +35,6 @@ class SemySmsServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/semy-sms.php', 'semy-sms');
         $this->publishes([__DIR__ . '/../config/semy-sms.php' => config_path('semy-sms.php')], 'config');
-        $this->loadRoutesFrom(__DIR__ . '/routes.php');
+        require __DIR__.'/routes.php';
     }
 }

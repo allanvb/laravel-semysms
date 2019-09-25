@@ -1,18 +1,20 @@
 <?php
 
 
-namespace Allanvb\LaravelSemysms\Helpers;
+namespace Allanvb\LaravelSemysms;
 
 
 use Allanvb\LaravelSemysms\Exceptions\RequestException;
 use Allanvb\LaravelSemysms\Exceptions\SmsNotSentException;
 use Allanvb\LaravelSemysms\Rules\IntervalRule;
-use Illuminate\Contracts\Events\Dispatcher;
+use Allanvb\LaravelSemysms\Traits\SmsEventDispatcher;
 use Illuminate\Support\Facades\Validator;
 use GuzzleHttp\Client;
 
 abstract class SemySms
 {
+    use SmsEventDispatcher;
+
     protected const SEND_URL = "https://semysms.net/api/3/sms.php";
 
     protected const SEND_MULTIPLE_URL = "https://semysms.net/api/3/sms_more.php";
@@ -40,11 +42,6 @@ abstract class SemySms
     protected $token;
 
     /**
-     * @var Dispatcher
-     */
-    protected $events;
-
-    /**
      * @var Client
      */
     protected $client;
@@ -53,11 +50,10 @@ abstract class SemySms
      * SemySms constructor.
      * @param Dispatcher $events
      */
-    public function __construct(Dispatcher $events, Client $client)
+    public function __construct(Client $client)
     {
         $this->token = config('semy-sms.token');
         $this->device_id = config('semy-sms.device_id');
-        $this->events = $events;
         $this->client = $client;
     }
 
@@ -167,6 +163,12 @@ abstract class SemySms
      * @return mixed
      */
     protected abstract function sendMultiple(array $data);
+
+    /**
+     * @param array $data
+     * @return mixed
+     */
+    protected abstract function ussd(array $data);
 
     /**
      * @param array|null $data

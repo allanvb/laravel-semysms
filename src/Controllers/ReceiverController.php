@@ -2,17 +2,19 @@
 
 namespace Allanvb\LaravelSemysms\Controllers;
 
-use Illuminate\Contracts\Events\Dispatcher;
+use Allanvb\LaravelSemysms\Traits\SmsEventDispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 class ReceiverController extends Controller
 {
+    use SmsEventDispatcher;
+
     /**
      * @param Request $request
      * @param Dispatcher $events
      */
-    public function receiveSMS(Request $request, Dispatcher $events)
+    public function receiveSMS(Request $request)
     {
         if (config('semy-sms.catch_incoming')) {
 
@@ -23,7 +25,7 @@ class ReceiverController extends Controller
 
             $data = collect($data);
 
-            $events->dispatch('semy-sms.received', $data);
+            $this->dispatch('semy-sms.received', $data);
         }
     }
 }
