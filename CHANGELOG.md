@@ -2,6 +2,9 @@
 
 All notable changes to Laravel SemySMS will be documented in this file
 
+## 1.0.3
+- Added ussd-response event
+
 ## 1.0.2
 - Fix error with sending SMS
 - Added ussd requests feature
