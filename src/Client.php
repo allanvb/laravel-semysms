@@ -22,8 +22,15 @@ class Client extends SemySms
         $validator = Validator::make($data, [
             'to' => 'required|string|max:30|regex:/^\+\d+$/',
             'text' => 'required|max:255',
-            'device_id' => 'numeric|digits_between:1,10'
         ]);
+
+        $validator->sometimes('device_id', 'digits_between:1,10', function($input) {
+            return is_numeric($input->device_id);
+        });
+
+        $validator->sometimes('device_id', 'in:active', function($input) {
+            return !is_numeric($input->device_id);
+        });
 
         if ($validator->fails()) {
             return back()->withErrors($validator->errors());
