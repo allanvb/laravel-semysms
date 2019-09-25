@@ -8,7 +8,7 @@
     <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/packagist/l/allanvb/laravel-semysms?color=brightgreen&style=flat-square" alt="License"></a>
 </p>
 
-Simple package that integrates [SemySMS](http:/semysms.net) API into your Laravel 5.4+ app.
+Package that integrates [SemySMS](http:/semysms.net) API into your Laravel 5 app.
 
 ## Installation:
 
@@ -20,7 +20,7 @@ composer require allanvb/laravel-semysms
 
 If you're using Laravel 5.5 or above, the package will automatically register provider and facade.
 
-#### Laravel 5.4
+#### Laravel 5.4 and below
 
 Add `Allanvb\LaravelSemysms\SemySmsServiceProvider` to the `providers` array in your `config/app.php`:
 
@@ -132,6 +132,17 @@ Available parameters:
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
 * `devices` - (array) List of devices.
 
+#### Sending USSD requests
+* This feature works only on Android 8.1+
+
+```php
+SemySMS::ussd([
+    'to' => '*123#'
+]);
+```
+
+You can use `'device_id'` parameter to perform USSD request from specific device.
+
 #### List of outgoing SMS
 
 ```php
@@ -200,7 +211,7 @@ You can request canceling of all SMS for specific device by passing `device_id`,
 
 ## Events
 
-The package have events build in. There are three events available for you to listen for. 
+The package have events built in. There are three events available for you to listen for. 
 
 | Event                   | Fired                          | Parameter                                          |
 | ----------------------- | ------------------------------ | -------------------------------------------------- |
