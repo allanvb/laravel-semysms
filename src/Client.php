@@ -3,7 +3,7 @@
 
 namespace Allanvb\LaravelSemysms;
 
-use Allanvb\LaravelSemysms\Helpers\SemySms;
+use Allanvb\LaravelSemysms\SemySms;
 use Allanvb\LaravelSemysms\Rules\IntervalRule;
 use Illuminate\Support\Facades\Validator;
 
@@ -29,14 +29,13 @@ class Client extends SemySms
             return back()->withErrors($validator->errors());
         }
 
-        $device_id = $data['device_id'] ?? $this->device_id;
-
         $postData = [
-            'device' => $device_id,
-            'token' => $this->token,
-            'phone' => $data['to'],
-            'msg' => $data['text']
+            'token' => $this->token
         ];
+
+        $postData['device'] = $data['device_id'] ?? $this->device_id;
+        $postData['phone'] = $data['to'];
+        $postData['msg'] = $data['text'];
 
         $request = $this->performRequest($postData, $url);
 
@@ -45,7 +44,7 @@ class Client extends SemySms
         $response = collect($data);
         $response->prepend(json_decode($request['body'])->id, 'message_id');
 
-        $this->events->dispatch('semy-sms.sent', $response);
+        $this->dispatch('semy-sms.sent', $response);
 
         return $response;
     }
@@ -102,8 +101,46 @@ class Client extends SemySms
                 'text' => $postData['data'][$key]['msg']
             ];
         });
+        $this->dispatch('semy-sms.sent-multiple', $response);
 
-        $this->events->dispatch('semy-sms.sent-multiple', $response);
+
+        return $response;
+    }
+
+    /**
+     * @param array $data
+     * @return \Illuminate\Support\Collection|mixed
+     * @throws Exceptions\RequestException
+     * @throws Exceptions\SmsNotSentException
+     */
+    public function ussd(array $data) {
+        $url = self::SEND_URL;
+
+        $validator = Validator::make($data, [
+            'to' => 'required|string|max:10|regex:/^\\*[0-9*]+#$/',
+            'device_id' => 'numeric|digits_between:1,10'
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors();
+        }
+
+        $postData = [
+            'token' => $this->token
+        ];
+
+        $postData['device'] = $data['device_id'] ?? $this->device_id;
+        $postData['phone'] = $data['to'];
+        $postData['msg'] = '[ussd]';
+
+        $request = $this->performRequest($postData, $url);
+
+        $this->validateRequest($request);
+
+        $response = collect($data);
+        $response->prepend(json_decode($request['body'])->id, 'message_id');
+
+        $this->dispatch('semy-sms.sent', $response);
 
         return $response;
     }
