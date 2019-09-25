@@ -218,6 +218,8 @@ The package have events built in. There are three events available for you to li
 | semy-sms.sent           | When message sent.             | 'To' and 'text' parameters of SMS that was sent.   |
 | semy-sms.sent-multiple  | When multiple message sent.    | List of phones, devices and message that was sent. |
 | semy-sms.received       | When new message income.       | DeviceID, Sender and Text of income message.       |
+| semy-sms.ussd-response  | When ussd response income.     | DeviceID, Sender and Text of income message.       |
+
 
 ## Exceptions
 
@@ -231,15 +233,17 @@ The package can throw the following exceptions:
 
 ## Extra
 
-#### Receiving message from device
+#### Receiving message from devices
 
 If you want to get incoming messages from your devices, you can use 
 
 `https://yourdomain.com/semy-sms/receive` route in your [SemySMS](https://semysms.net) control panel.
 
-To get this route working you need to change `catch_incoming` to `true` in your config file.
+To get this route working you need to change `catch_incoming` to `true` in your config file, then you will be able to listen for `semy-sms.received` Event.
 
-When you will get a new message, an `semy-sms.received` [Event](https://laravel.com/docs/events) will be fired.
+If you performed an ussd request, you can listen for `semy-sms.ussd-response` Event to process USSD response.
+
+You can get more information about Events in [Laravel official documentation](https://laravel.com/docs/events)
 
 #### Intervals
 
