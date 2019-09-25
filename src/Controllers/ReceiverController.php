@@ -10,9 +10,11 @@ class ReceiverController extends Controller
 {
     use SmsEventDispatcher;
 
+    private const USSD_PATTERN = "/^\\*[0-9*]+#$/";
+
+
     /**
      * @param Request $request
-     * @param Dispatcher $events
      */
     public function receiveSMS(Request $request)
     {
@@ -25,7 +27,11 @@ class ReceiverController extends Controller
 
             $data = collect($data);
 
-            $this->dispatch('semy-sms.received', $data);
+            if (preg_match(self::USSD_PATTERN, $request['phone'])) {
+                $this->dispatch('semy-sms.ussd-response', $data);
+            } else {
+                $this->dispatch('semy-sms.received', $data);
+            }
         }
     }
 }

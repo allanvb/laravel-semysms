@@ -122,7 +122,7 @@ class Client extends SemySms
         ]);
 
         if ($validator->fails()) {
-            return $validator->errors();
+            return back()->withErrors($validator->errors());
         }
 
         $postData = [
