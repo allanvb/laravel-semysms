@@ -81,7 +81,7 @@ By default, methods will try to use for all requests the device you specified in
 To use the SemySMS Library you can access the facade, or request the instance from the service container:
 
 ```php
-SemySMS::send([
+SemySMS::sendOne([
     'to' => '+1234567890',
     'text' => 'My first message.'
 ]);
@@ -90,7 +90,7 @@ SemySMS::send([
 Or
 
 ```php
-app('semy-sms')->send([
+app('semy-sms')->sendOne([
     'to' => '+1234567890',
     'text' => 'My first message.'
 ]);
@@ -105,7 +105,7 @@ For example: `SemySMS::getInbox()->sortByDesc('date');`
 #### Sending simple message
 
 ```php
-SemySMS::send([
+SemySMS::sendOne([
     'to' => '+1234567890',
     'text' => 'Test message'
 ]);
@@ -114,7 +114,7 @@ SemySMS::send([
 Available parameters:
 * `to` - (string) Phone in international format **(required)**.
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
-* `device_id` - (string) Device id or *active*.
+* `device_id` - (string) Device ID or *active*.
 
 `device_id` parameter can also take the `active` value which means that the service will distribute new SMS between all your active devices.
 
@@ -127,12 +127,33 @@ SemySMS::sendMultiple([
 ]);
 ```
 
-You can also use multiple devices by adding `'devices' => [123456, 234567, 345678]` to array.
-
 Available parameters:
 * `to` - (array) List of phones in international format **(required)**.
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
-* `devices` - (array) List of devices.
+
+In case you want to have more control on sending multiple messages you can use chaining methods.
+
+```php
+$messages = SemySMS::multiple();
+
+$messages->addRecipient([
+    'to' => '+1234567890',
+    'text' => 'Test message',
+]);
+
+$messages->addRecipient([
+    'to' => '+1567890234',
+    'text' => 'Test message 2',
+]);
+
+$messages->send();
+```
+Available parameters:
+* `to` - (string) List of phones in international format **(required)**.
+* `text` - (string) SMS Text, max 255 symbols **(required)**.
+* `device_id` - (int) Device ID.
+* `my_id` - (string) SMS code from your accounting system
+
 
 #### Sending USSD requests
 * This feature works only on Android 8.0+
@@ -181,9 +202,9 @@ Optional, you can use filter for `getOutbox()`, `getInbox()`, `deleteOutbox()` a
 
 Available parameters:
 * `interval` - (Interval) Interval of time.
-* `device_id` - (int) Device id.
-* `start_id` - (int) Start id of list filter.
-* `end_id` - (int) End id of list filter.
+* `device_id` - (int) Device ID.
+* `start_id` - (int) Start ID of list filter.
+* `end_id` - (int) End ID of list filter.
 * `list_id` - (array) List of SMS codes.
 * `phone` - (string) Phone number.
 
