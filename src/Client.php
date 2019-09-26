@@ -15,7 +15,7 @@ class Client extends SemySms
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      */
-    public function send(array $data)
+    public function sendOne(array $data)
     {
         $url = self::SEND_URL;
 
@@ -24,11 +24,11 @@ class Client extends SemySms
             'text' => 'required|max:255',
         ]);
 
-        $validator->sometimes('device_id', 'digits_between:1,10', function($input) {
+        $validator->sometimes('device_id', 'digits_between:1,10', function ($input) {
             return is_numeric($input->device_id);
         });
 
-        $validator->sometimes('device_id', 'in:active', function($input) {
+        $validator->sometimes('device_id', 'in:active', function ($input) {
             return !is_numeric($input->device_id);
         });
 
@@ -69,9 +69,7 @@ class Client extends SemySms
         $validator = Validator::make($data, [
             'to' => 'required|array',
             'to.*' => 'max:30|regex:/^\+\d+$/',
-            'text' => 'required|max:255',
-            'devices' => 'array',
-            'devices.*' => 'numeric|digits_between:1,10'
+            'text' => 'required|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -82,14 +80,10 @@ class Client extends SemySms
             'token' => $this->token
         ];
 
-        $devices = $data['devices'] ?? null;
-
         foreach ($data['to'] as $phone) {
-            $device_id = isset($devices) ? $devices[array_rand($devices, 1)] : $this->device_id;
 
             $postData['data'][] = [
-                'token' => $this->token,
-                'device' => $device_id,
+                'device' => $this->device_id,
                 'phone' => $phone,
                 'msg' => $data['text']
             ];
@@ -108,8 +102,88 @@ class Client extends SemySms
                 'text' => $postData['data'][$key]['msg']
             ];
         });
+
         $this->dispatch('semy-sms.sent-multiple', $response);
 
+
+        return $response;
+    }
+
+    /**
+     * @return $this
+     */
+    public function multiple()
+    {
+        $this->recipients['token'] = $this->token;
+        $this->recipients['data'] = [];
+
+        return $this;
+    }
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function addRecipient(array $data)
+    {
+        $validator = Validator::make($data, [
+            'to' => 'required|string|max:30|regex:/^\+\d+$/',
+            'text' => 'required|max:255',
+            'device_id' => 'numeric|digits_between:1,10',
+            'my_id' => 'max:50'
+        ]);
+
+        if ($validator->fails()) {
+            return $validator->errors();
+        }
+
+        $recipient = [
+            'phone' => $data['to'],
+            'msg' => $data['text'],
+        ];
+
+        $recipient['device'] = $data['device_id'] ?? $this->device_id;
+
+        if (isset($data['my_id'])) {
+            $recipient['my_id'] = $data['my_id'];
+        }
+
+        array_push($this->recipients['data'], $recipient);
+
+        return $this;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection
+     * @throws Exceptions\RequestException
+     * @throws Exceptions\SmsNotSentException
+     */
+    public function send()
+    {
+        $url = self::SEND_MULTIPLE_URL;
+
+        $request = $this->performRequest($this->recipients, $url, true);
+
+        $this->validateRequest($request);
+
+        $body = json_decode($request['body'], true);
+
+        $response = collect($body['data'] ?? [])->map(function ($data, $key) {
+            $message = [
+                'message_id' => (int)$data['id'],
+                'device_id' => (int)$this->recipients['data'][$key]['device'],
+                'to' => (string)$this->recipients['data'][$key]['phone'],
+                'text' => $this->recipients['data'][$key]['msg']
+            ];
+
+            if (isset($this->recipients['data'][$key]['my_id'])) {
+                $message['my_id'] = $data['my_id'];
+            }
+
+            return $message;
+        });
+
+        $this->dispatch('semy-sms.sent-multiple', $response);
 
         return $response;
     }
@@ -120,7 +194,8 @@ class Client extends SemySms
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      */
-    public function ussd(array $data) {
+    public function ussd(array $data)
+    {
         $url = self::SEND_URL;
 
         $validator = Validator::make($data, [
@@ -271,7 +346,8 @@ class Client extends SemySms
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      */
-    public function cancelSMS(array $data = null) {
+    public function cancelSMS(array $data = null)
+    {
         $url = self::CANCEL_SMS_URL;
 
         if (isset($data)) {

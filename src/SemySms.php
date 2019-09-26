@@ -47,6 +47,11 @@ abstract class SemySms
     protected $client;
 
     /**
+     * @var array
+     */
+    protected $recipients;
+
+    /**
      * SemySms constructor.
      * @param Dispatcher $events
      */
@@ -156,13 +161,29 @@ abstract class SemySms
      * @param array $data
      * @return mixed
      */
-    protected abstract function send(array $data);
+    protected abstract function sendOne(array $data);
 
     /**
      * @param array $data
      * @return mixed
      */
     protected abstract function sendMultiple(array $data);
+
+    /**
+     * @return mixed
+     */
+    protected abstract function multiple();
+
+    /**
+     * @param array $data
+     * @return mixed
+     */
+    protected abstract function addRecipient(array $data);
+
+    /**
+     * @return mixed
+     */
+    protected abstract function send();
 
     /**
      * @param array $data
