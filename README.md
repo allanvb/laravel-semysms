@@ -112,7 +112,7 @@ SemySMS::sendOne([
 ```
 
 Available parameters:
-* `to` - (string) Phone in international format **(required)**.
+* `to` - (string) Phone number in international format **(required)**.
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
 * `device_id` - (string) Device ID or *active*.
 
@@ -149,7 +149,7 @@ $messages->addRecipient([
 $messages->send();
 ```
 Available parameters:
-* `to` - (string) List of phones in international format **(required)**.
+* `to` - (string) Phone number in international format **(required)**.
 * `text` - (string) SMS Text, max 255 symbols **(required)**.
 * `device_id` - (int) Device ID.
 * `my_id` - (string) SMS code from your accounting system
