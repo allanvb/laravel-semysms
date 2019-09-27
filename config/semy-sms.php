@@ -17,11 +17,12 @@ return [
 
     /**
      * Capture Incoming messages
-     * You set capture link on: https://semysms.net/myprofile/devices
+     * You can set capture link on: https://semysms.net/myprofile/devices
      */
     'catch_incoming' => false,
 
     /**
+     * List of senders
      * You can set a list of senders to filter your USSD responses in case you get it as SMS.
      */
     'ussd_senders' => [
