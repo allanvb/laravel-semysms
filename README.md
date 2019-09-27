@@ -51,12 +51,12 @@ use Allanvb\Semysms\Facades\SemySMS;
 
 Look at one of the following topics to learn more about SemySMS package.
 
-* [Configuration](#configuration)
-* [Usage](#usage)
-* [Examples](#examples)
-* [Exceptions](#exceptions)
-* [Events](#events)
-* [Extra](#extra)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Exceptions](#exceptions)
+- [Events](#events)
+- [Extra](#extra)
 
 ## Configuration
 
@@ -95,7 +95,7 @@ app('semy-sms')->sendOne([
     'text' => 'My first message.'
 ]);
 ```
-* All numbers must have international format.
+- All numbers must have international format.
 
 All methods and events will return a [Collection](https://laravel.com/docs/collections), so you can use all available methods to manipulate response.
 For example: `SemySMS::getInbox()->sortByDesc('date');`
@@ -112,9 +112,9 @@ SemySMS::sendOne([
 ```
 
 Available parameters:
-* `to` - (string) Phone number in international format **(required)**.
-* `text` - (string) SMS Text, max 255 symbols **(required)**.
-* `device_id` - (string) Device ID or *active*.
+- `to` - (string) Phone number in international format **(required)**.
+- `text` - (string) SMS Text, max 255 symbols **(required)**.
+- `device_id` - (string) Device ID or *active*.
 
 `device_id` parameter can also take the `active` value which means that the service will distribute new SMS between all your active devices.
 
@@ -128,8 +128,8 @@ SemySMS::sendMultiple([
 ```
 
 Available parameters:
-* `to` - (array) List of phones in international format **(required)**.
-* `text` - (string) SMS Text, max 255 symbols **(required)**.
+- `to` - (array) List of phones in international format **(required)**.
+- `text` - (string) SMS Text, max 255 symbols **(required)**.
 
 In case you want to have more control on sending multiple messages you can use chaining methods.
 
@@ -149,14 +149,14 @@ $messages->addRecipient([
 $messages->send();
 ```
 Available parameters:
-* `to` - (string) Phone number in international format **(required)**.
-* `text` - (string) SMS Text, max 255 symbols **(required)**.
-* `device_id` - (int) Device ID.
-* `my_id` - (string) SMS code from your accounting system
+- `to` - (string) Phone number in international format **(required)**.
+- `text` - (string) SMS Text, max 255 symbols **(required)**.
+- `device_id` - (int) Device ID.
+- `my_id` - (string) SMS code from your accounting system
 
 
 #### Sending USSD requests
-* This feature works only on Android 8.0+
+- This feature works only on Android 8.0+
 
 ```php
 SemySMS::ussd([
@@ -201,12 +201,12 @@ SemySMS::deleteInbox();
 Optional, you can use filter for `getOutbox()`, `getInbox()`, `deleteOutbox()` and `deleteInbox()` methods.
 
 Available parameters:
-* `interval` - (Interval) Interval of time.
-* `device_id` - (int) Device ID.
-* `start_id` - (int) Start ID of list filter.
-* `end_id` - (int) End ID of list filter.
-* `list_id` - (array) List of SMS codes.
-* `phone` - (string) Phone number.
+- `interval` - (Interval) Interval of time.
+- `device_id` - (int) Device ID.
+- `start_id` - (int) Start ID of list filter.
+- `end_id` - (int) End ID of list filter.
+- `list_id` - (array) List of SMS codes.
+- `phone` - (string) Phone number.
 
 
 #### List of devices
@@ -218,8 +218,8 @@ SemySMS::getDevices();
 By default this method will return list of all devices connected to account.
 
 Available parameters:
-* `status` - (string) active|archived.
-* `list_id` - (array) List of devices.
+- `status` - (string) active|archived.
+- `list_id` - (array) List of devices.
 
 #### Cancel sending SMS
 
@@ -252,7 +252,7 @@ The package can throw the following exceptions:
 | ---------------------------- | ---------------------------------------------------------------------------------- |
 | *RequestException*           | When HTTP response will be different than 200.                                     |
 | *SmsNotSentException*        | When something went wrong with the request to SemySMS servers.                     |
-| *InvalidIntervalException*   | When you pass invalid Interval                                              |
+| *InvalidIntervalException*   | When you pass invalid Interval                                                     |
 
 ## Extra
 
@@ -263,8 +263,8 @@ If you want to get incoming messages from your devices, you can use
 `https://yourdomain.com/semy-sms/receive` route in your [SemySMS](https://semysms.net) control panel.
 
 To get this route working you need make some actions:
-* Change `catch_incoming` to `true` in your config file.
-* Add `semy-sms/receive` route to your `$except` variable in `VerifyCsrfToken` middleware.
+- Change `catch_incoming` to `true` in your config file.
+- Add `semy-sms/receive` route to your `$except` variable in `VerifyCsrfToken` middleware.
 
 After that, you will be able to listen for `semy-sms.received` Event.
 
