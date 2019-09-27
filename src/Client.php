@@ -4,8 +4,13 @@
 namespace Allanvb\LaravelSemysms;
 
 use Allanvb\LaravelSemysms\SemySms;
-use Allanvb\LaravelSemysms\Rules\IntervalRule;
-use Illuminate\Support\Facades\Validator;
+
+use Allanvb\LaravelSemysms\Validators\SendOneValidator;
+use Allanvb\LaravelSemysms\Validators\SendMultipleValidator;
+use Allanvb\LaravelSemysms\Validators\SendMultipleExtendedValidator;
+use Allanvb\LaravelSemysms\Validators\SendUssdValidator;
+use Allanvb\LaravelSemysms\Validators\GetDevicesValidator;
+use Allanvb\LaravelSemysms\Validators\CancelSmsValidator;
 
 class Client extends SemySms
 {
@@ -19,18 +24,7 @@ class Client extends SemySms
     {
         $url = self::SEND_URL;
 
-        $validator = Validator::make($data, [
-            'to' => 'required|string|max:30|regex:/^\+\d+$/',
-            'text' => 'required|max:255',
-        ]);
-
-        $validator->sometimes('device_id', 'digits_between:1,10', function ($input) {
-            return is_numeric($input->device_id);
-        });
-
-        $validator->sometimes('device_id', 'in:active', function ($input) {
-            return !is_numeric($input->device_id);
-        });
+        $validator = SendOneValidator::validate($data);
 
         if ($validator->fails()) {
             return back()->withErrors($validator->errors());
@@ -46,7 +40,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($postData, $url);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         $response = collect($data);
         $response->prepend(json_decode($request['body'])->id, 'message_id');
@@ -66,11 +60,7 @@ class Client extends SemySms
     {
         $url = self::SEND_MULTIPLE_URL;
 
-        $validator = Validator::make($data, [
-            'to' => 'required|array',
-            'to.*' => 'max:30|regex:/^\+\d+$/',
-            'text' => 'required|max:255'
-        ]);
+        $validator = SendMultipleValidator::validate($data);
 
         if ($validator->fails()) {
             return back()->withErrors($validator->errors());
@@ -91,7 +81,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($postData, $url, true);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
         $body = json_decode($request['body'], true);
 
         $response = collect($body['data'] ?? [])->map(function ($data, $key) use ($postData) {
@@ -126,15 +116,10 @@ class Client extends SemySms
      */
     public function addRecipient(array $data)
     {
-        $validator = Validator::make($data, [
-            'to' => 'required|string|max:30|regex:/^\+\d+$/',
-            'text' => 'required|max:255',
-            'device_id' => 'numeric|digits_between:1,10',
-            'my_id' => 'max:50'
-        ]);
+        $validator = SendMultipleExtendedValidator::validate($data);
 
         if ($validator->fails()) {
-            return $validator->errors();
+            return back()->withErrors($validator->errors());
         }
 
         $recipient = [
@@ -164,7 +149,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($this->recipients, $url, true);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         $body = json_decode($request['body'], true);
 
@@ -198,10 +183,7 @@ class Client extends SemySms
     {
         $url = self::SEND_URL;
 
-        $validator = Validator::make($data, [
-            'to' => 'required|string|max:10|regex:/^\\*[0-9*]+#$/',
-            'device_id' => 'numeric|digits_between:1,10'
-        ]);
+        $validator = SendUssdValidator::validate($data);
 
         if ($validator->fails()) {
             return back()->withErrors($validator->errors());
@@ -217,7 +199,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($postData, $url);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         $response = collect($data);
         $response->prepend(json_decode($request['body'])->id, 'message_id');
@@ -302,10 +284,7 @@ class Client extends SemySms
         $url = self::GET_DEVICES_LIST_URL;
 
         if (isset($data)) {
-            $validator = Validator::make($data, [
-                'status' => 'in:active,archived',
-                'list_id' => 'array'
-            ]);
+            $validator = GetDevicesValidator::validate($data);
 
             if ($validator->fails()) {
                 return back()->withErrors($validator->errors());
@@ -333,7 +312,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($postData, $url);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         $response = collect(json_decode($request['body'], true)['data']);
 
@@ -351,10 +330,7 @@ class Client extends SemySms
         $url = self::CANCEL_SMS_URL;
 
         if (isset($data)) {
-            $validator = Validator::make($data, [
-                'device_id' => 'numeric|digits_between:1,10',
-                'sms_id' => 'numeric',
-            ]);
+            $validator = CancelSmsValidator::validate($data);
 
             if ($validator->fails()) {
                 return back()->withErrors($validator->errors());
@@ -380,7 +356,7 @@ class Client extends SemySms
 
         $request = $this->performRequest($postData, $url);
 
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         unset($postData['token']);
 

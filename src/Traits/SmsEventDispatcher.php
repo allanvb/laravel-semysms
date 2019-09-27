@@ -8,6 +8,11 @@ use Illuminate\Contracts\Events\Dispatcher;
 
 trait SmsEventDispatcher
 {
+    /**
+     * @param $eventName
+     * @param $eventData
+     * @return void
+     */
     public function dispatch($eventName, $eventData) : void
     {
         switch (app()->version()) {

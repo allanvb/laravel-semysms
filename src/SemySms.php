@@ -6,9 +6,8 @@ namespace Allanvb\LaravelSemysms;
 
 use Allanvb\LaravelSemysms\Exceptions\RequestException;
 use Allanvb\LaravelSemysms\Exceptions\SmsNotSentException;
-use Allanvb\LaravelSemysms\Rules\IntervalRule;
 use Allanvb\LaravelSemysms\Traits\SmsEventDispatcher;
-use Illuminate\Support\Facades\Validator;
+use Allanvb\LaravelSemysms\Validators\ListRequestValidation;
 use GuzzleHttp\Client;
 
 abstract class SemySms
@@ -68,19 +67,12 @@ abstract class SemySms
      * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag
      * @throws RequestException
      * @throws SmsNotSentException
-     * @throws \Allanvb\LaravelSemysms\Exceptions\InvalidIntervalException
+     * @throws InvalidIntervalException
      */
     protected function createListRequest(array $data = null, string $requestUrl)
     {
         if (isset($data)) {
-            $validator = Validator::make($data, [
-                'interval' => new IntervalRule(),
-                'device_id' => 'numeric|digits_between:1,10',
-                'start_id' => 'numeric|required_with:end_id',
-                'end_id' => 'numeric|required_with:start_id',
-                'list_id' => 'array',
-                'phone' => 'max:40'
-            ]);
+            $validator = ListRequestValidation::validate($data);
 
             if ($validator->fails()) {
                 return back()->withErrors($validator->errors());
@@ -112,7 +104,7 @@ abstract class SemySms
         }
 
         $request = $this->performRequest($postData, $requestUrl);
-        $this->validateRequest($request);
+        $this->validateResponse($request);
 
         $response = collect(json_decode($request['body'], true)['data']);
 
@@ -143,8 +135,9 @@ abstract class SemySms
      * @param array $request
      * @throws RequestException
      * @throws SmsNotSentException
+     * @return void
      */
-    protected function validateRequest(array $request): void
+    protected function validateResponse(array $request): void
     {
         if ($request['statusCode'] != 200) {
             throw RequestException::create($request['statusCode']);
@@ -159,71 +152,71 @@ abstract class SemySms
 
     /**
      * @param array $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function sendOne(array $data);
 
     /**
      * @param array $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function sendMultiple(array $data);
 
     /**
-     * @return mixed
+     * @return object
      */
     protected abstract function multiple();
 
     /**
      * @param array $data
-     * @return mixed
+     * @return object
      */
     protected abstract function addRecipient(array $data);
 
     /**
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function send();
 
     /**
      * @param array $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function ussd(array $data);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function getOutbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function deleteOutbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function getInbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function deleteInbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function getDevices(array $data = null);
 
     /**
      * @param array|null $data
-     * @return mixed
+     * @return \Illuminate\Support\Collection
      */
     protected abstract function cancelSMS(array $data = null);
 
