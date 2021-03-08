@@ -3,6 +3,7 @@
 
 namespace Allanvb\LaravelSemysms;
 
+use Allanvb\LaravelSemysms\Exceptions\SemySmsValidationException;
 use Allanvb\LaravelSemysms\SemySms;
 
 use Allanvb\LaravelSemysms\Validators\SendOneValidator;
@@ -19,6 +20,7 @@ class Client extends SemySms
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
+     * @throws SemySmsValidationException
      */
     public function sendOne(array $data)
     {
@@ -27,7 +29,7 @@ class Client extends SemySms
         $validator = SendOneValidator::validate($data);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator->errors());
+            throw SemySmsValidationException::create($validator->errors());
         }
 
         $postData = [
@@ -55,6 +57,7 @@ class Client extends SemySms
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
+     * @throws SemySmsValidationException
      */
     public function sendMultiple(array $data)
     {
@@ -63,7 +66,7 @@ class Client extends SemySms
         $validator = SendMultipleValidator::validate($data);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator->errors());
+            throw SemySmsValidationException::create($validator->errors());
         }
 
         $postData = [
@@ -112,6 +115,7 @@ class Client extends SemySms
 
     /**
      * @param array $data
+     * @throws SemySmsValidationException
      * @return $this
      */
     public function addRecipient(array $data)
@@ -119,7 +123,7 @@ class Client extends SemySms
         $validator = SendMultipleExtendedValidator::validate($data);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator->errors());
+            throw SemySmsValidationException::create($validator->errors());
         }
 
         $recipient = [
@@ -178,6 +182,7 @@ class Client extends SemySms
      * @return \Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
+     * @throws SemySmsValidationException
      */
     public function ussd(array $data)
     {
@@ -186,7 +191,7 @@ class Client extends SemySms
         $validator = SendUssdValidator::validate($data);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator->errors());
+            throw SemySmsValidationException::create($validator->errors());
         }
 
         $postData = [
@@ -278,6 +283,7 @@ class Client extends SemySms
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
+     * @throws SemySmsValidationException
      */
     public function getDevices(array $data = null)
     {
@@ -287,7 +293,7 @@ class Client extends SemySms
             $validator = GetDevicesValidator::validate($data);
 
             if ($validator->fails()) {
-                return back()->withErrors($validator->errors());
+                throw SemySmsValidationException::create($validator->errors());
             }
         }
 
@@ -324,6 +330,7 @@ class Client extends SemySms
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
+     * @throws SemySmsValidationException
      */
     public function cancelSMS(array $data = null)
     {
@@ -333,7 +340,7 @@ class Client extends SemySms
             $validator = CancelSmsValidator::validate($data);
 
             if ($validator->fails()) {
-                return back()->withErrors($validator->errors());
+                throw SemySmsValidationException::create($validator->errors());
             }
         }
 

@@ -54,8 +54,9 @@ Look at one of the following topics to learn more about SemySMS package.
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Examples](#examples)
-- [Exceptions](#exceptions)
 - [Events](#events)
+- [Notification channel](#notification-channel)
+- [Exceptions](#exceptions)
 - [Extra](#extra)
 
 ## Configuration
@@ -244,12 +245,69 @@ The package have events built in. There are three events available for you to li
 | semy-sms.ussd-response  | When ussd response income.     | DeviceID, Sender and Text of income message.       |
 
 
+## Notification channel
+
+This package also provide notification channel for `SemySMS`.
+
+To use notification channel you must use `SemySmsChannel::class` in `via` method of your notification class.
+After that you will be able to use `toSemySms()` method for sending messages. 
+
+See example below.
+
+```php
+use Illuminate\Notifications\Notification;
+use Allanvb\LaravelSemysms\Channels\SemySmsChannel;
+use Allanvb\LaravelSemysms\Channels\SemySmsMessage;
+
+class MyNotification extends Notification
+{
+    public function via($notifiable)
+    {
+        return [SemySmsChannel::class];
+    }
+
+    public function toSemySms($notifiable)
+    {
+        return (new SemySmsMessage)
+            ->text('My first notification message.');
+    }
+
+}
+
+```
+
+You can add recipient in two ways. 
+- First is by using `routeNotificationForSemySMS()` in your notifiable model as below.
+
+```php
+// User model
+
+public function routeNotificationForSemySMS()
+{
+    return $this->phone;
+}
+```
+- Second way is to use `to()` method inside your notification.
+
+```php
+public function toSemySms($notifiable)
+{
+    return (new SemySmsMessage)
+            ->to('+1234567890')
+            ->text('My second notification message.');
+}
+```
+
+If you'll use both, then `to()` method will be used as primary.
+
+
 ## Exceptions
 
 The package can throw the following exceptions:
 
 | Exception                    | Reason                                                                             |
 | ---------------------------- | ---------------------------------------------------------------------------------- |
+| *SemySmsValidationException* | When method params don't pass validation.                                          |
 | *RequestException*           | When HTTP response will be different than 200.                                     |
 | *SmsNotSentException*        | When something went wrong with the request to SemySMS servers.                     |
 | *InvalidIntervalException*   | When you pass invalid Interval                                                     |
