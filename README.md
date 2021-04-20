@@ -6,6 +6,7 @@
     <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/packagist/v/allanvb/laravel-semysms?color=orange&style=flat-square" alt="Packagist Version"></a>
     <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/github/last-commit/allanvb/laravel-semysms?color=blue&style=flat-square" alt="GitHub last commit"></a>
     <a href="https://packagist.org/packages/allanvb/laravel-semysms"><img src="https://img.shields.io/packagist/l/allanvb/laravel-semysms?color=brightgreen&style=flat-square" alt="License"></a>
+    <a href="https://sonarcloud.io/dashboard/index/allanvb_laravel-semysms"><img src="https://sonarcloud.io/api/project_badges/measure?project=allanvb_laravel-semysms&metric=alert_status" alt="Sonar"/></a>
 </p>
 
 Package that integrates [SemySMS](http:/semysms.net) API into your Laravel 5 app.
