@@ -21,8 +21,6 @@ abstract class SemySmsValidator
     {
         $instance = new static();
 
-        $validator = Validator::make($data, $instance->rules());
-
-        return $validator;
+        return Validator::make($data, $instance->rules());
     }
 }

@@ -4,20 +4,21 @@
 namespace Allanvb\LaravelSemysms;
 
 use Allanvb\LaravelSemysms\Exceptions\SemySmsValidationException;
-use Allanvb\LaravelSemysms\SemySms;
-
-use Allanvb\LaravelSemysms\Validators\SendOneValidator;
-use Allanvb\LaravelSemysms\Validators\SendMultipleValidator;
-use Allanvb\LaravelSemysms\Validators\SendMultipleExtendedValidator;
-use Allanvb\LaravelSemysms\Validators\SendUssdValidator;
-use Allanvb\LaravelSemysms\Validators\GetDevicesValidator;
 use Allanvb\LaravelSemysms\Validators\CancelSmsValidator;
+use Allanvb\LaravelSemysms\Validators\GetDevicesValidator;
+use Allanvb\LaravelSemysms\Validators\SendMultipleExtendedValidator;
+use Allanvb\LaravelSemysms\Validators\SendMultipleValidator;
+use Allanvb\LaravelSemysms\Validators\SendOneValidator;
+use Allanvb\LaravelSemysms\Validators\SendUssdValidator;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
+use Illuminate\Support\MessageBag;
 
 class Client extends SemySms
 {
     /**
      * @param array $data
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
+     * @return RedirectResponse|Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      * @throws SemySmsValidationException
@@ -54,7 +55,7 @@ class Client extends SemySms
 
     /**
      * @param array $data
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
+     * @return RedirectResponse|Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      * @throws SemySmsValidationException
@@ -74,11 +75,10 @@ class Client extends SemySms
         ];
 
         foreach ($data['to'] as $phone) {
-
             $postData['data'][] = [
                 'device' => $this->device_id,
-                'phone' => $phone,
-                'msg' => $data['text']
+                'phone'  => $phone,
+                'msg'    => $data['text']
             ];
         }
 
@@ -87,14 +87,16 @@ class Client extends SemySms
         $this->validateResponse($request);
         $body = json_decode($request['body'], true);
 
-        $response = collect($body['data'] ?? [])->map(function ($data, $key) use ($postData) {
-            return [
-                'message_id' => (int)$data['id'],
-                'device_id' => (int)$postData['data'][$key]['device'],
-                'to' => (string)$postData['data'][$key]['phone'],
-                'text' => $postData['data'][$key]['msg']
-            ];
-        });
+        $response = collect($body['data'] ?? [])->map(
+            function ($data, $key) use ($postData) {
+                return [
+                    'message_id' => (int)$data['id'],
+                    'device_id'  => (int)$postData['data'][$key]['device'],
+                    'to'         => (string)$postData['data'][$key]['phone'],
+                    'text'       => $postData['data'][$key]['msg']
+                ];
+            }
+        );
 
         $this->dispatch('semy-sms.sent-multiple', $response);
 
@@ -115,8 +117,8 @@ class Client extends SemySms
 
     /**
      * @param array $data
-     * @throws SemySmsValidationException
      * @return $this
+     * @throws SemySmsValidationException
      */
     public function addRecipient(array $data)
     {
@@ -128,7 +130,7 @@ class Client extends SemySms
 
         $recipient = [
             'phone' => $data['to'],
-            'msg' => $data['text'],
+            'msg'   => $data['text'],
         ];
 
         $recipient['device'] = $data['device_id'] ?? $this->device_id;
@@ -143,7 +145,7 @@ class Client extends SemySms
     }
 
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      */
@@ -157,20 +159,22 @@ class Client extends SemySms
 
         $body = json_decode($request['body'], true);
 
-        $response = collect($body['data'] ?? [])->map(function ($data, $key) {
-            $message = [
-                'message_id' => (int)$data['id'],
-                'device_id' => (int)$this->recipients['data'][$key]['device'],
-                'to' => (string)$this->recipients['data'][$key]['phone'],
-                'text' => $this->recipients['data'][$key]['msg']
-            ];
+        $response = collect($body['data'] ?? [])->map(
+            function ($data, $key) {
+                $message = [
+                    'message_id' => (int)$data['id'],
+                    'device_id'  => (int)$this->recipients['data'][$key]['device'],
+                    'to'         => (string)$this->recipients['data'][$key]['phone'],
+                    'text'       => $this->recipients['data'][$key]['msg']
+                ];
 
-            if (isset($this->recipients['data'][$key]['my_id'])) {
-                $message['my_id'] = $data['my_id'];
+                if (isset($this->recipients['data'][$key]['my_id'])) {
+                    $message['my_id'] = $data['my_id'];
+                }
+
+                return $message;
             }
-
-            return $message;
-        });
+        );
 
         $this->dispatch('semy-sms.sent-multiple', $response);
 
@@ -179,7 +183,7 @@ class Client extends SemySms
 
     /**
      * @param array $data
-     * @return \Illuminate\Support\Collection|mixed
+     * @return Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      * @throws SemySmsValidationException
@@ -216,7 +220,7 @@ class Client extends SemySms
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag|mixed
+     * @return Collection|MessageBag|mixed
      * @throws Exceptions\InvalidIntervalException
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
@@ -225,14 +229,12 @@ class Client extends SemySms
     {
         $url = self::GET_OUTBOX_LIST_URL;
 
-        $response = $this->createListRequest($data, $url);
-
-        return $response;
+        return $this->createListRequest($url, $data);
     }
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag|mixed
+     * @return Collection|MessageBag|mixed
      * @throws Exceptions\InvalidIntervalException
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
@@ -241,14 +243,12 @@ class Client extends SemySms
     {
         $url = self::DELETE_OUTBOX_LIST_URL;
 
-        $response = $this->createListRequest($data, $url);
-
-        return $response;
+        return $this->createListRequest($url, $data);
     }
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag|mixed
+     * @return Collection|MessageBag|mixed
      * @throws Exceptions\InvalidIntervalException
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
@@ -257,14 +257,12 @@ class Client extends SemySms
     {
         $url = self::GET_INBOX_LIST_URL;
 
-        $response = $this->createListRequest($data, $url);
-
-        return $response;
+        return $this->createListRequest($url, $data);
     }
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag|mixed
+     * @return Collection|MessageBag|mixed
      * @throws Exceptions\InvalidIntervalException
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
@@ -273,14 +271,12 @@ class Client extends SemySms
     {
         $url = self::DELETE_INBOX_LIST_URL;
 
-        $response = $this->createListRequest($data, $url);
-
-        return $response;
+        return $this->createListRequest($url, $data);
     }
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
+     * @return RedirectResponse|Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      * @throws SemySmsValidationException
@@ -302,13 +298,10 @@ class Client extends SemySms
         ];
 
         if (isset($data['status'])) {
-            switch ($data['status']) {
-                case 'active':
-                    $postData['is_arhive'] = 0;
-                    break;
-                case 'archived':
-                    $postData['is_arhive'] = 1;
-                    break;
+            if ($data['status'] === 'active') {
+                $postData['is_arhive'] = 0;
+            } elseif ($data['status'] === 'archived') {
+                $postData['is_arhive'] = 1;
             }
         }
 
@@ -320,14 +313,14 @@ class Client extends SemySms
 
         $this->validateResponse($request);
 
-        $response = collect(json_decode($request['body'], true)['data']);
-
-        return $response;
+        return collect(
+            json_decode($request['body'], true)['data']
+        );
     }
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Support\Collection|mixed
+     * @return RedirectResponse|Collection|mixed
      * @throws Exceptions\RequestException
      * @throws Exceptions\SmsNotSentException
      * @throws SemySmsValidationException
@@ -367,9 +360,7 @@ class Client extends SemySms
 
         unset($postData['token']);
 
-        $response = collect($postData);
-
-        return $response;
+        return collect($postData);
     }
 
 }

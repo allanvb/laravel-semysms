@@ -5,7 +5,6 @@ namespace Allanvb\LaravelSemysms\Validators;
 
 
 use Allanvb\LaravelSemysms\Helpers\Interval;
-//use Allanvb\LaravelSemysms\Rules\IntervalRule;
 use Illuminate\Support\Facades\Validator;
 
 class ListRequestValidation extends SemySmsValidator
@@ -41,8 +40,6 @@ class ListRequestValidation extends SemySmsValidator
             'interval_class' => 'Interval must be instance of Interval class.',
         ];
 
-        $validator = Validator::make($data, $instance->rules(), $messages);
-
-        return $validator;
+        return Validator::make($data, $instance->rules(), $messages);
     }
 }

@@ -9,6 +9,9 @@ use Allanvb\LaravelSemysms\Exceptions\SmsNotSentException;
 use Allanvb\LaravelSemysms\Traits\SmsEventDispatcher;
 use Allanvb\LaravelSemysms\Validators\ListRequestValidation;
 use GuzzleHttp\Client;
+use Illuminate\Config\Repository;
+use Illuminate\Support\Collection;
+use Illuminate\Support\MessageBag;
 
 abstract class SemySms
 {
@@ -31,12 +34,12 @@ abstract class SemySms
     protected const CANCEL_SMS_URL = "https://semysms.net/api/3/cancel_sms.php";
 
     /**
-     * @var \Illuminate\Config\Repository|mixed
+     * @var Repository|mixed
      */
     protected $device_id;
 
     /**
-     * @var \Illuminate\Config\Repository|mixed
+     * @var Repository|mixed
      */
     protected $token;
 
@@ -64,12 +67,12 @@ abstract class SemySms
     /**
      * @param array|null $data
      * @param string $requestUrl
-     * @return \Illuminate\Support\Collection|\Illuminate\Support\MessageBag
+     * @return Collection|MessageBag
      * @throws RequestException
      * @throws SmsNotSentException
      * @throws InvalidIntervalException
      */
-    protected function createListRequest(array $data = null, string $requestUrl)
+    protected function createListRequest(string $requestUrl, array $data = null)
     {
         if (isset($data)) {
             $validator = ListRequestValidation::validate($data);
@@ -106,9 +109,9 @@ abstract class SemySms
         $request = $this->performRequest($postData, $requestUrl);
         $this->validateResponse($request);
 
-        $response = collect(json_decode($request['body'], true)['data']);
-
-        return $response;
+        return collect(
+            json_decode($request['body'], true)['data']
+        );
     }
 
     /**
@@ -123,12 +126,10 @@ abstract class SemySms
 
         $request = $this->client->request('POST', $requestUrl, $content);
 
-        $response = [
+        return [
             'statusCode' => $request->getStatusCode(),
             'body' => $request->getBody()->getContents()
         ];
-
-        return $response;
     }
 
     /**
@@ -152,13 +153,13 @@ abstract class SemySms
 
     /**
      * @param array $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function sendOne(array $data);
 
     /**
      * @param array $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function sendMultiple(array $data);
 
@@ -174,49 +175,49 @@ abstract class SemySms
     protected abstract function addRecipient(array $data);
 
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function send();
 
     /**
      * @param array $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function ussd(array $data);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function getOutbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function deleteOutbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function getInbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function deleteInbox(array $data = null);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function getDevices(array $data = null);
 
     /**
      * @param array|null $data
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected abstract function cancelSMS(array $data = null);
 
