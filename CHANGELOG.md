@@ -2,6 +2,9 @@
 
 All notable changes to Laravel SemySMS will be documented in this file
 
+## 1.0.9
+- Code style fixes
+
 ## 1.0.8
 - Added notification channel
 
