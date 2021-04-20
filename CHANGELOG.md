@@ -2,6 +2,12 @@
 
 All notable changes to Laravel SemySMS will be documented in this file
 
+## 1.0.8
+- Added notification channel
+
+## 1.0.7
+- Fixed composer dependency
+
 ## 1.0.6
 - Refactored validation
 - Fixed validation bug on Laravel 5.1
